@@ -66,8 +66,8 @@ export async function getStaticProps(context: GetStaticPropsContext) {
     const db = await getDatabase(client);
     const event = await db.collection("events").findOne({ id: slug });
 
-    const resData = JSON.parse(JSON.stringify(event));
-    data = resData;
+    data = JSON.parse(JSON.stringify(event));
+
     if (!event) {
       client.close();
       return {
