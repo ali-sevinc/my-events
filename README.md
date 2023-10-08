@@ -1,6 +1,6 @@
 # NextEvents demo project.
 
-to learning getStaticProps, getStaticPaths, auth and much more...
+to learning getStaticProps, getStaticPaths, auth and much more...(basic usages)
 
 ### Technologies
 
@@ -10,3 +10,5 @@ to learning getStaticProps, getStaticPaths, auth and much more...
 - mongodb
 - bcryptjs
 - Styled-Components
+
+deploy: https://my-events-iota.vercel.app/

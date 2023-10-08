@@ -13,7 +13,6 @@ interface PropsType {
 }
 
 function SingleEventPage({ event, error }: PropsType) {
-  console.log(event);
   if (error) return <H1>{error}</H1>;
   if (!event?.id) return <Loader />;
   return (
