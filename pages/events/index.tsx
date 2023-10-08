@@ -1,13 +1,14 @@
 import Head from "next/head";
 
-import styled from "styled-components";
-
+import { connectDB, getDatabase } from "@/helpers/db";
 import { EventType } from "@/helpers/types";
+
+import styled from "styled-components";
 
 import Events from "@/features/events/Events";
 import Loader from "@/features/ui/Loader";
 
-const H1 = styled.h1`
+export const H1 = styled.h1`
   text-align: center;
   color: var(--color-indigo-800);
   margin-top: var(--size-3xl);
@@ -37,22 +38,57 @@ function EventsPage({ events, error }: PropsType) {
 }
 
 export async function getStaticProps() {
-  const res = await fetch("http://localhost:3000/api/events");
+  // const res = await fetch("http://localhost:3000/api/events");
+  // if (!res.ok) {
+  //   const data = await res.json();
+  //   return {
+  //     props: {
+  //       error: data.message,
+  //     },
+  //   };
+  // }
+  // const resData = await res.json();
+  // const events = resData;
 
-  if (!res.ok) {
-    const data = await res.json();
+  //directly use mobgoDB
+  let client;
+  try {
+    client = await connectDB();
+  } catch (error) {
     return {
       props: {
-        error: data.message,
+        error: "Database not respose.",
+        events: [],
       },
     };
   }
-  const resData = await res.json();
-  const events = resData;
 
+  let result;
+  try {
+    const db = await getDatabase(client);
+    const collection = db.collection("events");
+    result = await collection.find({}).toArray();
+  } catch (error) {
+    return {
+      props: {
+        error: "Events data could not fetch..",
+        events: [],
+      },
+    };
+  } finally {
+    client.close();
+  }
+  const events = JSON.parse(JSON.stringify(result));
+
+  if (!events)
+    return {
+      props: {
+        events: [],
+      },
+    };
   return {
     props: {
-      events: events.data,
+      events: events,
     },
     revalidate: 600,
   };

@@ -3,8 +3,19 @@ import Head from "next/head";
 
 import EventDetail from "@/features/events/EventDetail";
 import { EventType } from "@/helpers/types";
+import { connectDB, getDatabase } from "@/helpers/db";
+import Loader from "@/features/ui/Loader";
+import { H1 } from ".";
 
-function SingleEventPage({ event }: { event: EventType }) {
+interface PropsType {
+  event: EventType;
+  error?: string;
+}
+
+function SingleEventPage({ event, error }: PropsType) {
+  console.log(event);
+  if (error) return <H1>{error}</H1>;
+  if (!event?.id) return <Loader />;
   return (
     <>
       <Head>
@@ -20,20 +31,64 @@ function SingleEventPage({ event }: { event: EventType }) {
 }
 
 export async function getStaticProps(context: GetStaticPropsContext) {
-  const { params } = context;
-  const res = await fetch(`http://localhost:3000/api/events?${params?.slug}`);
+  // const { params } = context;
+  // const res = await fetch(`http://localhost:3000/api/events?${params?.slug}`);
 
-  if (!res.ok)
+  // if (!res.ok)
+  //   return {
+  //     props: {
+  //       event: [],
+  //     },
+  //   };
+  // const resData = await res.json();
+
+  // const data = resData?.data.find(
+  //   (item: EventType) => item.id === params?.slug
+  // );
+
+  //directly use monogoDB
+
+  const { params } = context;
+  const slug = params?.slug;
+  let client;
+  try {
+    client = await connectDB();
+  } catch (error) {
     return {
       props: {
-        event: [],
+        error: "Server not response..",
+        event: {},
       },
     };
-  const resData = await res.json();
+  }
 
-  const data = resData?.data.find(
-    (item: EventType) => item.id === params?.slug
-  );
+  let data;
+  try {
+    const db = await getDatabase(client);
+    const event = await db.collection("events").findOne({ id: slug });
+
+    const resData = JSON.parse(JSON.stringify(event));
+    data = resData;
+    if (!event) {
+      client.close();
+      return {
+        props: {
+          error: "Event not found..",
+          event: {},
+        },
+      };
+    }
+  } catch (err) {
+    return {
+      props: {
+        error: "Event could not loaded..",
+        event: {},
+      },
+    };
+  } finally {
+    client.close();
+  }
+
   return {
     props: {
       event: data,
