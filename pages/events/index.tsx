@@ -54,6 +54,7 @@ export async function getStaticProps() {
   let client;
   try {
     client = await connectDB();
+    //is it work?
   } catch (error) {
     return {
       props: {
